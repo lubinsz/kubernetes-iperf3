@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: iperf3-server-deployment
+  name: iperf-server-deployment
   labels:
-    app: iperf3-server
+    app: iperf-server
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: iperf3-server
+      app: iperf-server
   template:
     metadata:
       labels:
-        app: iperf3-server
+        app: iperf-server
     spec:
       affinity:
         nodeAffinity:
@@ -29,11 +29,11 @@ spec:
           operator: Exists
           effect: NoSchedule
       containers:
-      - name: iperf3-server
-        image: networkstatic/iperf3
+      - name: iperf-server
+        image: younglook/iperf-arm64
         args: ['-s']
         ports:
-        - containerPort: 5201
+        - containerPort: 5001
           name: server
       terminationGracePeriodSeconds: 0
 
@@ -42,13 +42,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: iperf3-server
+  name: iperf-server
 spec:
   selector:
-    app: iperf3-server
+    app: iperf-server
   ports:
   - protocol: TCP
-    port: 5201
+    port: 5001
     targetPort: server
     
 ---
@@ -56,25 +56,25 @@ spec:
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: iperf3-clients
+  name: iperf-clients
   labels:
-    app: iperf3-client
+    app: iperf-client
 spec:
   selector:
     matchLabels:
-      app: iperf3-client
+      app: iperf-client
   template:
     metadata:
       labels:
-        app: iperf3-client
+        app: iperf-client
     spec:
       tolerations:
         - key: node-role.kubernetes.io/master
           operator: Exists
           effect: NoSchedule
       containers:
-      - name: iperf3-client
-        image: networkstatic/iperf3
+      - name: iperf-client
+        image: younglook/iperf-arm64
         command: ['/bin/sh', '-c', 'sleep infinity']
-        # To benchmark manually: kubectl exec iperf3-clients-jlfxq -- /bin/sh -c 'iperf3 -c iperf3-server'
+        # To benchmark manually: kubectl exec iperf-clients-jlfxq -- /bin/sh -c 'iperf -c iperf-server'
       terminationGracePeriodSeconds: 0
